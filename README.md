@@ -21,6 +21,7 @@
 - **Gas as the agent's running gas, paid in Solana** — a Solana payment now directly keeps agents running.
 - A proof-of-wallet **bind** flow, memo-based attribution, a finalized-only scanner, an unattributed-deposit queue, and RPC resilience for public Solana gateways.
 - **Robinhood Chain** (native ETH + USDG) as the sixth deposit chain, shipped 2026-10-10 — see [`docs/ROBINHOOD_CHAIN.md`](docs/ROBINHOOD_CHAIN.md).
+- **Fund Hyperliquid from Robinhood Chain** (2026-10-11): Settings → cross-chain funding now accepts ETH or USDG on Robinhood Chain and swaps it to USDC on Arbitrum in the user's own wallet — see [`docs/ROBINHOOD_CHAIN.md`](docs/ROBINHOOD_CHAIN.md).
 - **Treasury sweep to Arbitrum One** (2026-10-11): collected deposits move to Arbitrum through Across, planned on the server and signed in the operator's wallet — the platform still never holds a key. See [`docs/TREASURY_SWEEP.md`](docs/TREASURY_SWEEP.md).
 
 See [`docs/WHATS_NEW.md`](docs/WHATS_NEW.md) for the complete list with dates, and what was pre-existing versus new.

@@ -37,6 +37,10 @@ Two ways to experience the work. Path A is the real product; path B is the local
 
 In the same Top up card, choose **Robinhood Chain** to pay with native **ETH** or **USDG** from your normal EVM login wallet (the page adds the network for you). The deposit is credited right after the transaction is confirmed. Details: [ROBINHOOD_CHAIN.md](ROBINHOOD_CHAIN.md).
 
+### Also new: fund Hyperliquid from Robinhood Chain
+
+In **Settings → Fund Hyperliquid (cross-chain)**, step 1 now offers **Robinhood Chain** as a source. Choose ETH or USDG, enter an amount, press **Get quote**, then **Swap now**: the page adds the network to your wallet and swaps to USDC on Arbitrum in your own wallet. Step 2 deposits that USDC to Hyperliquid's official bridge. Use a small amount first — it is a real swap.
+
 ### Things worth trying (the interesting edges)
 
 | Try this | Expected |

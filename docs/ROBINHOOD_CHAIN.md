@@ -31,7 +31,17 @@ We checked, and as of 2026-10-10 neither has an official deployment on Robinhood
 - Attribution is by **sender**, like all EVM lanes: the paying wallet must be the logged-in wallet, so no bind step is needed (the page refuses to send from a different account).
 - The public RPC is rate-limited and "not for production" per Robinhood; operators should set `ROBINHOOD_RPC_URLS` to a keyed gateway.
 
-## Moving the funds to Arbitrum
+## Cross-chain funding: Robinhood Chain as a source (2026-10-11)
+
+Maneki's **Settings → Fund Hyperliquid (cross-chain)** flow lets a user move assets into their own Hyperliquid account: step 1 swaps to USDC on Arbitrum (through LI.FI), step 2 deposits it to Hyperliquid's official bridge. **Robinhood Chain is now a source chain** in step 1:
+
+- the user picks *Robinhood Chain*, then **ETH** or **USDG**, enters an amount and gets a live quote;
+- the page adds the network to the wallet, handles the USDG approval, and the swap lands as USDC **in the user's own Arbitrum wallet** — funds never pass through the platform;
+- measured 2026-10-11: 0.05 ETH (≈$125) → ≈124.9 USDC; 20 USDG → ≈19.93 USDC (small amounts pay proportionally more in fixed bridge cost, and the page says so);
+- USDG is pinned to the official contract; LI.FI's token list also carries a second "USDG" that is never offered;
+- the "get a little gas (≈3)" shortcut was fixed so that for an ETH source it sizes the amount from the live USD price (~$3) instead of sending three ETH.
+
+## Moving collected deposits to Arbitrum (operator side)
 
 Collected ETH and USDG can be swept to Arbitrum One from the operator console without any key on the server — see [TREASURY_SWEEP.md](TREASURY_SWEEP.md).
 

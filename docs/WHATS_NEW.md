@@ -40,6 +40,16 @@
 | **Generic by-hash confirm endpoint** for EVM chains | Reusable for any future EVM chain whose native transfers matter |
 | Safety stance on tokens: **USDC/USDT are not accepted on this chain** because no official deployment exists (a look-alike USDT was found and rejected) | We only credit assets we can verify |
 
+### Cross-chain funding from Robinhood Chain — 2026-10-11
+
+| What is new | Why it matters |
+|---|---|
+| **Robinhood Chain added as a source** in Settings → Fund Hyperliquid (cross-chain): ETH or USDG → USDC on Arbitrum through LI.FI, then into the user's Hyperliquid account | Users holding assets on Robinhood Chain can fund their agents' trading account without leaving the app; funds stay in the user's own wallet at every step |
+| Official-USDG pinning, wallet network auto-add, approval handling, small-amount fee notice | Safety and clarity for a new chain |
+| "Get a little gas (≈3)" now sizes ETH sources by USD price | The old behaviour would have sent 3 ETH |
+
+Details: [ROBINHOOD_CHAIN.md](ROBINHOOD_CHAIN.md).
+
 ### Treasury sweep — 2026-10-11
 
 | What is new | Why it matters |
@@ -81,5 +91,7 @@ Verified on 2026-09-30, before the production release:
 **Not yet verified at the time of writing:** a devnet end-to-end deposit (public faucets rate-limited our IPs). Check the treasury on [Solscan](https://solscan.io/account/3FHqTpYb3g8MWpwGfspTyBd3Twfj2X7pKawBg9T8QQSo) for live deposit activity.
 
 Robinhood Chain (2026-10-10): scanned and by-hash parsing verified against the real chain and in production health checks; a real user deposit has not been observed yet.
+
+Cross-chain funding from Robinhood Chain (2026-10-11): the real front-end code was run in Node against live LI.FI quotes with a mocked wallet (network add, approval, swap transaction, gas sizing); a real wallet popup and real funds have not been exercised yet.
 
 Treasury sweep (2026-10-11): planning verified against real quotes (also from the production server) and the browser logic end to end against mocks; a real-funds sweep has not been run yet.
