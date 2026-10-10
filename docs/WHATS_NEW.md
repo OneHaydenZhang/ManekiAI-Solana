@@ -40,6 +40,16 @@
 | **Generic by-hash confirm endpoint** for EVM chains | Reusable for any future EVM chain whose native transfers matter |
 | Safety stance on tokens: **USDC/USDT are not accepted on this chain** because no official deployment exists (a look-alike USDT was found and rejected) | We only credit assets we can verify |
 
+### Treasury sweep — 2026-10-11
+
+| What is new | Why it matters |
+|---|---|
+| **Robinhood Chain → Arbitrum One sweep console** in the operator admin: ETH → ETH and USDG → native USDC through Across (≈0.04–0.07% fee, 1–2 s) | Collected deposits can be consolidated on Arbitrum |
+| **Plan on the server, sign in the operator's wallet** — the platform never holds a private key | A server compromise cannot drain user deposits; same unsigned-transaction pattern as the Solana flow |
+| Allowlisted bridge contracts, exact-request re-checks, fee cap, exact-amount approvals, gas reserve, audit trail | Defence in depth before anything is signed |
+
+Details: [TREASURY_SWEEP.md](TREASURY_SWEEP.md).
+
 ### Gas economy and onboarding (also after 2026-09-12)
 
 | Date | Change |
@@ -71,3 +81,5 @@ Verified on 2026-09-30, before the production release:
 **Not yet verified at the time of writing:** a devnet end-to-end deposit (public faucets rate-limited our IPs). Check the treasury on [Solscan](https://solscan.io/account/3FHqTpYb3g8MWpwGfspTyBd3Twfj2X7pKawBg9T8QQSo) for live deposit activity.
 
 Robinhood Chain (2026-10-10): scanned and by-hash parsing verified against the real chain and in production health checks; a real user deposit has not been observed yet.
+
+Treasury sweep (2026-10-11): planning verified against real quotes (also from the production server) and the browser logic end to end against mocks; a real-funds sweep has not been run yet.

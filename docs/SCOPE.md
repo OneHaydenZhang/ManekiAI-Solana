@@ -7,7 +7,7 @@ This is a **deliberately partial** open-source release of Maneki AI.
 - Solana deposit lane: wallet discovery, wallet bind, unsigned-transaction builder, scanner, parser, crediting gates, unattributed queue.
 - Gas: pricing, balance, append-only ledger, the charge/debit primitives, public burn-rate card.
 - A runnable demo (API + page) and tests.
-- Documentation of the other deposit lanes added during the hackathon window (e.g. [Robinhood Chain](ROBINHOOD_CHAIN.md)); their provider code is not part of this Solana-focused repository.
+- Documentation of the other deposit lanes added during the hackathon window (e.g. [Robinhood Chain](ROBINHOOD_CHAIN.md)); their provider code is not part of this Solana-focused repository. The same applies to the operator sweep console ([TREASURY_SWEEP.md](TREASURY_SWEEP.md)).
 
 ## Not included (proprietary)
 

@@ -31,6 +31,10 @@ We checked, and as of 2026-10-10 neither has an official deployment on Robinhood
 - Attribution is by **sender**, like all EVM lanes: the paying wallet must be the logged-in wallet, so no bind step is needed (the page refuses to send from a different account).
 - The public RPC is rate-limited and "not for production" per Robinhood; operators should set `ROBINHOOD_RPC_URLS` to a keyed gateway.
 
+## Moving the funds to Arbitrum
+
+Collected ETH and USDG can be swept to Arbitrum One from the operator console without any key on the server — see [TREASURY_SWEEP.md](TREASURY_SWEEP.md).
+
 ## Honest limits
 
 1. **Top-level transfers only.** ETH forwarded by a contract (an internal transfer) is not recognised; users send straight from their wallet.
