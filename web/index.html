@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maneki AI · Solana Fuel Top-up</title>
+<style>
+  :root { --bg:#0f1115; --card:#181b22; --line:#2a2f3a; --fg:#e8eaf0; --mut:#8a91a3; --acc:#9945ff; --grn:#2ecc8f; --red:#ff6b6b; --amb:#f5b83d; }
+  @media (prefers-color-scheme: light) { :root { --bg:#f6f7fb; --card:#fff; --line:#dfe3ec; --fg:#1b1f2a; --mut:#667085; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif; }
+  main { max-width:720px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:22px; margin:0 0 4px; } .sub { color:var(--mut); margin:0 0 20px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:16px; }
+  .card h2 { font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut); margin:0 0 12px; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  input, select, button { font:inherit; padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--fg); }
+  input { flex:1; min-width:120px; }
+  button { cursor:pointer; background:var(--acc); border-color:var(--acc); color:#fff; font-weight:600; }
+  button.ghost { background:transparent; color:var(--fg); border-color:var(--line); }
+  button:disabled { opacity:.5; cursor:default; }
+  .big { font-size:34px; font-weight:700; } .mut { color:var(--mut); } .mono { font-family:ui-monospace,Menlo,monospace; font-size:12.5px; word-break:break-all; }
+  #msg { min-height:22px; margin-top:10px; } table { width:100%; border-collapse:collapse; font-size:13px; }
+  td, th { text-align:left; padding:6px 4px; border-bottom:1px solid var(--line); } th { color:var(--mut); font-weight:500; }
+  .pos { color:var(--grn); } .neg { color:var(--red); } a { color:var(--acc); }
+  .hide { display:none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Maneki AI · Solana Fuel top-up</h1>
+  <p class="sub">Pay with SOL, USDC or USDT. Fuel is what your Maneki agents burn to run.</p>
+
+  <div class="card" id="loginCard">
+    <h2>1 · Log in (demo identity)</h2>
+    <div class="row">
+      <input id="addr" placeholder="0x… login address (leave empty to generate one)" spellcheck="false">
+      <button id="loginBtn">Log in</button>
+    </div>
+    <div class="mut" style="margin-top:8px;font-size:13px">The live product logs in with a signed EVM wallet message; this demo only needs an identity to attribute deposits to.</div>
+  </div>
+
+  <div class="card hide" id="fuelCard">
+    <h2>Fuel balance</h2>
+    <div class="big"><span id="bal">0</span> <span class="mut" style="font-size:16px">Fuel</span></div>
+    <div class="mut" id="who" style="font-size:12.5px"></div>
+    <div class="row" style="margin-top:12px">
+      <span class="mut" style="font-size:13px">Simulate an agent cycle:</span>
+      <button class="ghost" data-burn="standard">Standard −18</button>
+      <button class="ghost" data-burn="gpt">GPT −68</button>
+      <button class="ghost" data-burn="claude">Claude −88</button>
+    </div>
+  </div>
+
+  <div class="card hide" id="depCard">
+    <h2>2 · Top up with Solana</h2>
+    <div id="walletLine" class="mut" style="margin-bottom:10px"></div>
+    <div class="row">
+      <select id="tok"></select>
+      <input id="amt" type="number" min="0" step="any" placeholder="amount">
+      <button id="depBtn">Deposit</button>
+      <button id="scanBtn" class="ghost">Refresh</button>
+    </div>
+    <div class="mut" id="quote" style="margin-top:8px;font-size:13px"></div>
+    <div id="msg"></div>
+  </div>
+
+  <div class="card hide" id="histCard">
+    <h2>Fuel ledger</h2>
+    <table><thead><tr><th>Time</th><th>Kind</th><th>Fuel</th><th>Detail</th></tr></thead><tbody id="hist"></tbody></table>
+  </div>
+</main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let TOKEN = '', CFG = null, CHAIN = null;
+const fmt = (n) => Math.round(Number(n) || 0).toLocaleString();
+
+async function api(path, opts) {
+  opts = opts || {};
+  const r = await fetch(path, { method: opts.method || 'GET',
+    headers: Object.assign({ 'Content-Type': 'application/json' }, TOKEN ? { Authorization: 'Bearer ' + TOKEN } : {}),
+    body: opts.body ? JSON.stringify(opts.body) : undefined });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.detail || ('HTTP ' + r.status));
+  return j;
+}
+function say(text, color) { const m = $('#msg'); m.textContent = text; m.style.color = color || ''; }
+
+/* ---- bytes helpers -------------------------------------------------------- */
+const _B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+function b58enc(bytes) {
+  const a = new Uint8Array(bytes); let n = 0n; for (const b of a) n = (n << 8n) + BigInt(b);
+  let s = ''; while (n > 0n) { s = _B58[Number(n % 58n)] + s; n /= 58n; }
+  for (const b of a) { if (b === 0) s = '1' + s; else break; } return s;
+}
+const bytesToB64 = (u8) => btoa(String.fromCharCode(...new Uint8Array(u8)));
+const b64ToBytes = (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+
+/* ---- Solana wallets: Wallet Standard first, window.solana as fallback ---- */
+const std = [];
+function register(w) {
+  try {
+    if (!w || !w.features || !(w.chains || []).some((c) => String(c).startsWith('solana:'))) return;
+    if (!w.features['solana:signAndSendTransaction'] && !w.features['solana:signTransaction']) return;
+    if (!std.some((x) => x.name === w.name)) std.push(w);
+  } catch (_) {}
+}
+(function discover() {
+  const reg = { register: (...ws) => { ws.forEach(register); return () => {}; } };
+  try { window.addEventListener('wallet-standard:register-wallet', (ev) => { try { ev.detail(reg); } catch (_) {} }); } catch (_) {}
+  try { window.dispatchEvent(new CustomEvent('wallet-standard:app-ready', { detail: reg })); } catch (_) {}
+})();
+function wallets() {
+  const out = std.map((w) => ({ name: w.name, std: w }));
+  const add = (name, p) => { if (p && typeof p.connect === 'function' && !out.some((x) => x.name.toLowerCase().startsWith(name.toLowerCase()))) out.push({ name, legacy: p }); };
+  add('Phantom', window.phantom && window.phantom.solana); add('Solflare', window.solflare);
+  add('Backpack', window.backpack); add('OKX', window.okxwallet && window.okxwallet.solana); add('Solana', window.solana);
+  return out;
+}
+let SOL = null;   // { wallet, pubkey, account, std, legacy, bound }
+async function connect() {
+  const ws = wallets();
+  if (!ws.length) throw new Error('No Solana wallet detected — install Phantom, Solflare, Backpack or OKX Wallet.');
+  const w = ws.find((x) => /phantom/i.test(x.name)) || ws[0];
+  let pubkey = '', account = null;
+  if (w.std) {
+    const res = await w.std.features['standard:connect'].connect();
+    account = (res.accounts || []).find((a) => (a.chains || []).some((c) => String(c).startsWith('solana:'))) || (res.accounts || [])[0];
+    if (!account) throw new Error('Wallet returned no Solana account');
+    pubkey = account.address || b58enc(account.publicKey);
+  } else {
+    const res = await w.legacy.connect(); const pk = (res && res.publicKey) || w.legacy.publicKey; pubkey = pk ? pk.toString() : '';
+    if (!pubkey) throw new Error('Wallet returned no account');
+  }
+  SOL = { wallet: w.name, pubkey, account, std: w.std || null, legacy: w.legacy || null, bound: false };
+  renderWallet();
+}
+async function signMessage(msg) {
+  const bytes = new TextEncoder().encode(msg);
+  if (SOL.std) {
+    const f = SOL.std.features['solana:signMessage']; if (!f) throw new Error('Wallet cannot sign messages');
+    const out = await f.signMessage({ account: SOL.account, message: bytes });
+    return bytesToB64((out && out[0] && out[0].signature) || (out && out.signature));
+  }
+  const out = await SOL.legacy.signMessage(bytes, 'utf8'); return bytesToB64(out.signature || out);
+}
+async function ensureBound() {
+  const ch = await api('/api/solana/bind-challenge', { method: 'POST', body: { pubkey: SOL.pubkey } });
+  if (ch.bound) { SOL.bound = true; renderWallet(); return; }
+  say('First time only: sign the bind message in your wallet (free, no transaction)…');
+  const signature = await signMessage(ch.message);
+  await api('/api/solana/bind', { method: 'POST', body: { pubkey: SOL.pubkey, signature } });
+  SOL.bound = true; renderWallet();
+}
+async function signAndSend(built) {
+  const chainId = CHAIN.solana.chain;
+  if (SOL.std) {
+    const f = SOL.std.features['solana:signAndSendTransaction'];
+    if (f) {
+      const out = await f.signAndSendTransaction({ transaction: b64ToBytes(built.tx_b64), account: SOL.account, chain: chainId });
+      const sig = (out && out[0] && out[0].signature) || (out && out.signature);
+      return typeof sig === 'string' ? sig : b58enc(sig);
+    }
+  }
+  const p = SOL.legacy;
+  if (p && typeof p.request === 'function') {
+    const r = await p.request({ method: 'signAndSendTransaction', params: { message: built.message_b58 } });
+    return (r && r.signature) || r;
+  }
+  throw new Error('Wallet cannot send transactions');
+}
+
+/* ---- rendering ------------------------------------------------------------ */
+function renderWallet() {
+  const el = $('#walletLine');
+  if (SOL) el.innerHTML = `Wallet: <b>${esc(SOL.wallet)}</b> <span class="mono">${esc(SOL.pubkey.slice(0,4))}…${esc(SOL.pubkey.slice(-4))}</span> ${SOL.bound ? '· <span class="pos">bound</span>' : ''}`;
+  else el.innerHTML = 'No wallet connected yet — it connects when you press Deposit.';
+}
+function renderQuote() {
+  const t = CHAIN && CHAIN.tokens.find((x) => x.symbol === $('#tok').value);
+  const a = Number($('#amt').value) || 0;
+  if (!t || !t.price_usd) { $('#quote').textContent = t ? 'Price feed unavailable — deposits will wait.' : ''; return; }
+  const mult = CFG.pricing.deposit_bonus_mult, per = CFG.pricing.fuel_per_usd;
+  $('#quote').textContent = `1 ${t.symbol} ≈ $${t.price_usd.toFixed(2)} · ${a || 0} ${t.symbol} → ${fmt(Math.floor(a * t.price_usd * mult * per))} Fuel`;
+}
+function renderFuel(d) {
+  $('#bal').textContent = fmt(d.balance);
+  const rows = (d.history || []).map((h) => {
+    const link = h.kind === 'deposit' && h.txhash ? ` · <a target="_blank" rel="noopener" href="${esc(CHAIN.solana.explorer_tx + h.txhash + (CHAIN.solana.explorer_suffix || ''))}">tx</a>` : '';
+    return `<tr><td>${new Date(h.ts * 1000).toLocaleString()}</td><td>${esc(h.kind)}</td>` +
+           `<td class="${h.points >= 0 ? 'pos' : 'neg'}">${h.points >= 0 ? '+' : ''}${fmt(h.points)}</td><td>${esc(h.note || '')}${link}</td></tr>`;
+  }).join('');
+  $('#hist').innerHTML = rows || '<tr><td colspan="4" class="mut">No activity yet.</td></tr>';
+}
+async function refresh() { renderFuel(await api('/api/fuel')); }
+
+/* ---- actions -------------------------------------------------------------- */
+async function deposit() {
+  const tok = $('#tok').value, amt = Number($('#amt').value);
+  if (!(amt > 0)) return say('Enter an amount.', 'var(--amb)');
+  $('#depBtn').disabled = true;
+  try {
+    if (!SOL) { say('Connecting wallet…'); await connect(); }
+    await ensureBound();
+    say('Preparing transaction…');
+    const body = { sender_pubkey: SOL.pubkey, token: tok, amount: amt };
+    let built = await api('/api/solana/build', { method: 'POST', body });
+    say('Confirm in your wallet…');
+    let sig;
+    try { sig = await signAndSend(built); }
+    catch (e) {                                   // blockhash lives ~60-90 s: rebuild once
+      if (/blockhash|expired|block height/i.test(String((e && e.message) || e))) { built = await api('/api/solana/build', { method: 'POST', body }); sig = await signAndSend(built); }
+      else throw e;
+    }
+    if (!sig) throw new Error('Wallet returned no signature');
+    say('Sent — waiting for finality…', 'var(--amb)');
+    const link = CHAIN.solana.explorer_tx + sig + (CHAIN.solana.explorer_suffix || '');
+    for (const ms of [2500, 6000, 12000, 25000]) {
+      await new Promise((r) => setTimeout(r, ms));
+      let r; try { r = await api('/api/solana/confirm', { method: 'POST', body: { signature: sig } }); } catch (_) { continue; }
+      if (r.credited) { renderFuel(r); $('#msg').innerHTML = `<span style="color:var(--grn)">Credited +${fmt(r.credited_points)} Fuel</span> · <a target="_blank" rel="noopener" href="${esc(link)}">tx</a>`; return; }
+      if (r.found && r.mine === false) return say('This transaction was not sent from a bound wallet and cannot be attributed.', 'var(--red)');
+    }
+    $('#msg').innerHTML = `On-chain; still waiting to credit (usually under a minute). Press Refresh. · <a target="_blank" rel="noopener" href="${esc(link)}">tx</a>`;
+  } catch (e) {
+    const msg = String((e && e.message) || e);
+    say(/reject|denied|cancel/i.test(msg) ? 'Cancelled' : 'Failed: ' + msg.slice(0, 160), /reject|denied|cancel/i.test(msg) ? '' : 'var(--red)');
+  } finally { $('#depBtn').disabled = false; }
+}
+async function scan() {
+  try { const r = await api('/api/fuel/scan', { method: 'POST' }); renderFuel(r);
+    say(r.credited ? `Credited +${fmt(r.credited_points)} Fuel` : (r.pending ? 'Deposit seen, waiting for finality or price.' : 'No new deposits found.'), r.credited ? 'var(--grn)' : ''); }
+  catch (e) { say('Failed: ' + String(e.message).slice(0, 160), 'var(--red)'); }
+}
+
+async function login() {
+  let a = $('#addr').value.trim();
+  if (!a) a = '0x' + Array.from(crypto.getRandomValues(new Uint8Array(20))).map((b) => b.toString(16).padStart(2, '0')).join('');
+  try {
+    const r = await api('/api/login', { method: 'POST', body: { address: a } });
+    TOKEN = r.token; try { localStorage.setItem('maneki_demo', JSON.stringify({ token: r.token, address: r.address })); } catch (_) {}
+    await enter(r.address);
+  } catch (e) { alert(e.message); }
+}
+async function enter(address) {
+  $('#loginCard').classList.add('hide');
+  ['fuelCard', 'depCard', 'histCard'].forEach((id) => $('#' + id).classList.remove('hide'));
+  $('#who').textContent = 'Login: ' + address;
+  renderWallet(); await refresh();
+}
+
+(async function init() {
+  CFG = await api('/api/config'); CHAIN = CFG.chain;
+  if (!CFG.enabled) { document.querySelector('main').insertAdjacentHTML('beforeend', '<div class="card">Solana deposits are not configured on this instance (set SOLANA_TREASURY_ADDRESS).</div>'); }
+  else $('#tok').innerHTML = CHAIN.tokens.map((t) => `<option>${esc(t.symbol)}</option>`).join('');
+  $('#tok').onchange = $('#amt').oninput = renderQuote;
+  $('#loginBtn').onclick = login; $('#depBtn').onclick = deposit; $('#scanBtn').onclick = scan;
+  document.querySelectorAll('[data-burn]').forEach((b) => b.onclick = async () => {
+    try { const r = await api('/api/demo/burn', { method: 'POST', body: { tier: b.dataset.burn } }); $('#bal').textContent = fmt(r.balance); await refresh(); say(''); }
+    catch (e) { say(e.message, 'var(--red)'); } });
+  try { const s = JSON.parse(localStorage.getItem('maneki_demo') || 'null');
+    if (s && s.token) { TOKEN = s.token; try { await refresh(); await enter(s.address); } catch (_) { TOKEN = ''; } } } catch (_) {}
+})();
+</script>
+</body>
+</html>
