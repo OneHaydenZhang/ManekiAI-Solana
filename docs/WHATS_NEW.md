@@ -7,8 +7,8 @@
 | Area | State before the hackathon |
 |---|---|
 | Maneki platform | Multi-tenant wallet login, autonomous AI trading agents on Hyperliquid, admin console |
-| Fuel | Per-wallet balance + append-only ledger, USD-anchored pricing (1 USD = 1,000 Fuel, +1% top-up bonus), signup bonus |
-| Fuel consumption | Agents burn Fuel per completed decision cycle, priced by model tier; zero balance stops the agent |
+| Gas | Per-wallet balance + append-only ledger, USD-anchored pricing (1 USD = 1,000 Gas, +1% top-up bonus), signup bonus |
+| Gas consumption | Agents burn Gas per completed decision cycle, priced by model tier; zero balance stops the agent |
 | Deposit chains | Injective (INJ), 0G, HyperEVM (HYPE / USDT0 / USDC), X Layer — shared registry → scanner → ledger pipeline |
 
 ## 2. New since 2026-09-12 — shipped to production
@@ -17,7 +17,7 @@
 
 | # | What is new | Why it matters |
 |---|---|---|
-| 1 | **SOL, USDC and USDT deposits → Fuel**, the first non-EVM, non-Cosmos chain in the registry | Solana users can fund agents directly |
+| 1 | **SOL, USDC and USDT deposits → Gas**, the first non-EVM, non-Cosmos chain in the registry | Solana users can fund agents directly |
 | 2 | **Server-built unsigned transaction, wallet signs and broadcasts raw bytes**; server confirms by signature | Zero front-end dependencies (no web3.js), no key custody, works with Wallet Standard wallets and legacy `window.solana` |
 | 3 | **Wallet bind by signed message** (ed25519 proof of control, one-time, free, 5-minute single-use challenge) | The paying Solana key is unrelated to the EVM login key — this is how a deposit finds its owner without trusting the client |
 | 4 | **On-chain attribution memo** `maneki:<login>` attached to every deposit | Second, independent attribution path; also readable on any explorer |
@@ -27,25 +27,34 @@
 | 8 | **Dust floor** for parking (≥ $0.01) | Found on the live treasury: 1-lamport "address poisoning" sends |
 | 9 | **RPC resilience for public gateways**: batch → spaced single calls on HTTP 429, second public gateway, parsed-transaction LRU, negative cache for pruned history | Measured live: the Foundation endpoint returns 429 on a 10-call batch |
 | 10 | **Blockhash-expiry auto-rebuild** in the front end | Users who linger in the wallet popup do not fail |
-| 11 | **Sanity-windowed SOL pricing** with pending semantics | A broken price feed can never mint Fuel |
+| 11 | **Sanity-windowed SOL pricing** with pending semantics | A broken price feed can never mint Gas |
 | 12 | **Operator console card**: treasury publish/validate, token-account state (ATA exists?), keyed-RPC hint | Operators see readiness at a glance |
 | 13 | **Promo tiers work on the Solana lane** | Top-up incentives apply to Solana deposits too |
 
-### Fuel economy and onboarding (also after 2026-09-12)
+### Robinhood Chain lane — 2026-10-10
+
+| What is new | Why it matters |
+|---|---|
+| **Native ETH and USDG deposits** on Robinhood Chain (Arbitrum Orbit L2, chain 4663), the sixth deposit chain | Another way to fund agents, built on the same pipeline; details in [ROBINHOOD_CHAIN.md](ROBINHOOD_CHAIN.md) |
+| **Credit by transaction hash** for native ETH (a plain send leaves no log to scan), with a resumable pending list in the browser | Native sends are credited without a block explorer or a paid indexer |
+| **Generic by-hash confirm endpoint** for EVM chains | Reusable for any future EVM chain whose native transfers matter |
+| Safety stance on tokens: **USDC/USDT are not accepted on this chain** because no official deployment exists (a look-alike USDT was found and rejected) | We only credit assets we can verify |
+
+### Gas economy and onboarding (also after 2026-09-12)
 
 | Date | Change |
 |---|---|
 | 2026-09-27 | **Token-denominated top-up promo tiers with per-tier caps** (priced in the chain's own token rather than USD), alongside a 0G-first model lineup |
-| 2026-10-02 | **Wallet-login hardening**: smart-contract wallets are refused up front with a clear message; a stuck wallet request no longer triggers retries; one row per wallet in the picker — fewer failed logins on the way to the Fuel panel |
+| 2026-10-02 | **Wallet-login hardening**: smart-contract wallets are refused up front with a clear message; a stuck wallet request no longer triggers retries; one row per wallet in the picker — fewer failed logins on the way to the Gas panel |
 
 ## 3. New in this repository (built for the hackathon)
 
 | Item | Notes |
 |---|---|
-| Standalone, runnable extraction of the deposit → Fuel path | `maneki_solana/` — no dependency on the closed agent runtime |
+| Standalone, runnable extraction of the deposit → Gas path | `maneki_solana/` — no dependency on the closed agent runtime |
 | `solana_chain.py` | Same module that runs in production |
-| `ledger.py`, `deposits.py`, `pricing.py` | Compact, self-contained re-implementations of the production Fuel ledger and crediting pipeline (same gates and invariants) |
-| Demo web page | `web/index.html` — wallet connect, bind, deposit, ledger, and a "burn Fuel" button that stands in for agent cycles |
+| `ledger.py`, `deposits.py`, `pricing.py` | Compact, self-contained re-implementations of the production Gas ledger and crediting pipeline (same gates and invariants) |
+| Demo web page | `web/index.html` — wallet connect, bind, deposit, ledger, and a "burn Gas" button that stands in for agent cycles |
 | 25 tests | Parsing, bind proof, attribution, idempotency, pending-on-no-price, queue, ledger floor-at-zero, API guardrails, and a real transaction-serialization check |
 | Documentation | This folder |
 
@@ -60,3 +69,5 @@ Verified on 2026-09-30, before the production release:
 - This repository: 25 tests pass; the transaction builder was exercised against Solana devnet RPC.
 
 **Not yet verified at the time of writing:** a devnet end-to-end deposit (public faucets rate-limited our IPs). Check the treasury on [Solscan](https://solscan.io/account/3FHqTpYb3g8MWpwGfspTyBd3Twfj2X7pKawBg9T8QQSo) for live deposit activity.
+
+Robinhood Chain (2026-10-10): scanned and by-hash parsing verified against the real chain and in production health checks; a real user deposit has not been observed yet.

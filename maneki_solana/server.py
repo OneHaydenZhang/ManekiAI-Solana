@@ -1,4 +1,4 @@
-"""HTTP API + demo UI for the Solana deposit -> Fuel lane.
+"""HTTP API + demo UI for the Solana deposit -> Gas lane.
 
 Endpoints mirror production (`/api/points/solana/*` there, `/api/solana/*` here).
 Login is a deliberate stand-in: production authenticates with a signed wallet
@@ -26,7 +26,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from . import config, deposits, ledger, pricing, solana_chain
 
 log = logging.getLogger("maneki.server")
-app = FastAPI(title="Maneki AI · Solana deposit + Fuel")
+app = FastAPI(title="Maneki AI · Solana deposit + Gas")
 WEB = Path(__file__).resolve().parent.parent / "web"
 
 _ADDR_RE = re.compile(r"^0x[0-9a-fA-F]{40}$")
@@ -92,8 +92,8 @@ async def api_login(request: Request) -> Dict[str, Any]:
     return {"token": tok, "address": addr}
 
 
-@app.get("/api/fuel")
-def api_fuel(address: str = Depends(require_login)) -> Dict[str, Any]:
+@app.get("/api/gas")
+def api_gas(address: str = Depends(require_login)) -> Dict[str, Any]:
     return {"address": address, "balance": ledger.balance(address), "history": ledger.history(address, 50)}
 
 
@@ -139,19 +139,19 @@ async def bind(request: Request, address: str = Depends(require_login)) -> Dict[
 @app.post("/api/solana/build")
 async def build(request: Request, address: str = Depends(require_login)) -> Dict[str, Any]:
     """Unsigned SOL / SPL transfer to the treasury (+ attribution memo).
-    Body: {sender_pubkey, token, amount | fuel}."""
+    Body: {sender_pubkey, token, amount | gas}."""
     body = await request.json()
     pubkey = str(body.get("sender_pubkey") or "").strip()
     token = str(body.get("token") or "SOL").strip().upper()
     try:
-        fuel = float(body.get("fuel") or 0)
+        gas = float(body.get("gas") or 0)
         amount = float(body.get("amount") or 0)
     except (TypeError, ValueError):
         raise HTTPException(400, "invalid deposit request")
     if not solana_chain.is_pubkey(pubkey):
         raise HTTPException(400, "sender_pubkey must be a base58 Solana address")
-    if fuel <= 0 and amount <= 0:
-        raise HTTPException(400, "fuel or amount is required")
+    if gas <= 0 and amount <= 0:
+        raise HTTPException(400, "gas or amount is required")
     cfg = _cfg_or_503()
     if not deposits.is_bound(pubkey, address):
         raise HTTPException(409, "Bind this Solana wallet first.")
@@ -165,7 +165,7 @@ async def build(request: Request, address: str = Depends(require_login)) -> Dict
     if not price:
         raise HTTPException(503, f"{token} price feed unavailable — please retry shortly.")
     if amount <= 0:
-        amount = pricing.amount_for_credits(fuel, price)
+        amount = pricing.amount_for_credits(gas, price)
     amount = float(f"{amount:.9f}") if token == "SOL" else float(f"{amount:.6f}")
     if amount <= 0:
         raise HTTPException(400, "amount too small")
@@ -213,18 +213,18 @@ async def confirm(request: Request, address: str = Depends(require_login)) -> Di
             "history": ledger.history(address, 50), **res}
 
 
-@app.post("/api/fuel/scan")
+@app.post("/api/gas/scan")
 async def scan(address: str = Depends(require_login)) -> Dict[str, Any]:
     """Refresh: credit only deposits THIS login sent (bound wallet or memo)."""
     res = await asyncio.to_thread(deposits.scan_for_user, address)
     return {**res, "balance": ledger.balance(address), "history": ledger.history(address, 50)}
 
 
-# ------------------------------------------------------- fuel is burned -----
+# ------------------------------------------------------- gas is burned -----
 
 @app.post("/api/demo/burn")
 async def demo_burn(request: Request, address: str = Depends(require_login)) -> Dict[str, Any]:
-    """Demo of the consumption side: an agent run charges Fuel through the same
+    """Demo of the consumption side: an agent run charges Gas through the same
     ledger. In production the agent runtime calls `ledger.charge()` after each
     completed decision cycle; that runtime is not part of this repository."""
     tier = str((await request.json()).get("tier") or "standard")
@@ -233,7 +233,7 @@ async def demo_burn(request: Request, address: str = Depends(require_login)) -> 
         raise HTTPException(400, f"tier must be one of {sorted(pricing.BURN_RATES)}")
     if not ledger.try_debit(address, cost, kind="spend", note=f"demo agent cycle · {tier} tier",
                             agent_id="demo-agent"):
-        raise HTTPException(402, "Out of Fuel — top up with Solana to keep the agent running.")
+        raise HTTPException(402, "Out of Gas — top up with Solana to keep the agent running.")
     return {"spent": cost, "tier": tier, "balance": ledger.balance(address)}
 
 

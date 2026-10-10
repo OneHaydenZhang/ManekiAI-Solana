@@ -1,4 +1,4 @@
-"""Fuel ledger — per-wallet balance + append-only history on SQLite (WAL).
+"""Gas ledger — per-wallet balance + append-only history on SQLite (WAL).
 
 Invariants (same as production):
   * Every mutation goes through `_apply`, so the balance row and the ledger row
@@ -26,19 +26,19 @@ _conn_path: Optional[str] = None
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
   address TEXT PRIMARY KEY, created_at REAL NOT NULL);
-CREATE TABLE IF NOT EXISTS fuel_balance (
+CREATE TABLE IF NOT EXISTS gas_balance (
   address TEXT PRIMARY KEY, balance REAL NOT NULL DEFAULT 0, updated_at REAL NOT NULL);
-CREATE TABLE IF NOT EXISTS fuel_tx (
+CREATE TABLE IF NOT EXISTS gas_tx (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   address TEXT NOT NULL, kind TEXT NOT NULL, points REAL NOT NULL,
   token TEXT DEFAULT '', token_amount REAL DEFAULT 0, txhash TEXT DEFAULT '',
   note TEXT DEFAULT '', ts REAL NOT NULL, balance_after REAL NOT NULL,
   agent_id TEXT DEFAULT '', ref TEXT DEFAULT '', price_usd REAL DEFAULT 0,
   usd_value REAL DEFAULT 0, meta_json TEXT DEFAULT '', chain TEXT DEFAULT '');
-CREATE INDEX IF NOT EXISTS idx_fuel_tx_addr ON fuel_tx(address);
-CREATE INDEX IF NOT EXISTS idx_fuel_tx_hash ON fuel_tx(txhash);
-CREATE UNIQUE INDEX IF NOT EXISTS uidx_fuel_tx_deposit
-  ON fuel_tx(txhash) WHERE kind='deposit' AND txhash != '';
+CREATE INDEX IF NOT EXISTS idx_gas_tx_addr ON gas_tx(address);
+CREATE INDEX IF NOT EXISTS idx_gas_tx_hash ON gas_tx(txhash);
+CREATE UNIQUE INDEX IF NOT EXISTS uidx_gas_tx_deposit
+  ON gas_tx(txhash) WHERE kind='deposit' AND txhash != '';
 -- sender key ("sol:<base58 pubkey>", case-SENSITIVE) -> login address.
 -- A row can only be written after an ed25519 proof of control.
 CREATE TABLE IF NOT EXISTS deposit_senders (
@@ -115,7 +115,7 @@ def is_user(address: str) -> bool:
 # ------------------------------------------------------------ balance -------
 
 def balance(address: str) -> float:
-    row = query_one("SELECT balance FROM fuel_balance WHERE address=?", ((address or "").lower(),))
+    row = query_one("SELECT balance FROM gas_balance WHERE address=?", ((address or "").lower(),))
     return float(row["balance"]) if row else 0.0
 
 
@@ -132,16 +132,16 @@ def _apply(address: str, delta: float, kind: str, *, token: str = "", token_amou
         new = cur + delta
         if new < -1e-9:
             if not floor_at_zero or delta >= 0:
-                raise ValueError("insufficient fuel")
+                raise ValueError("insufficient gas")
             meta["shortfall"] = round(-new, 6)
             delta, new = -cur, 0.0
         new = max(0.0, new)
         c.execute("BEGIN")
         try:
-            c.execute("INSERT INTO fuel_balance(address,balance,updated_at) VALUES(?,?,?) "
+            c.execute("INSERT INTO gas_balance(address,balance,updated_at) VALUES(?,?,?) "
                       "ON CONFLICT(address) DO UPDATE SET balance=excluded.balance, updated_at=excluded.updated_at",
                       (address, new, now))
-            c.execute("INSERT INTO fuel_tx(address,kind,points,token,token_amount,txhash,note,ts,"
+            c.execute("INSERT INTO gas_tx(address,kind,points,token,token_amount,txhash,note,ts,"
                       "balance_after,agent_id,ref,price_usd,usd_value,meta_json,chain) "
                       "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                       (address, kind, delta, token or "", float(token_amount or 0), txhash or "",
@@ -157,15 +157,15 @@ def _apply(address: str, delta: float, kind: str, *, token: str = "", token_amou
     return new
 
 
-def credit(address: str, fuel: float, kind: str = "grant", **kw) -> float:
-    fuel = math.floor(float(fuel))              # whole numbers only
-    if fuel <= 0:
-        raise ValueError("fuel must be > 0")
-    return _apply(address, float(fuel), kind, **kw)
+def credit(address: str, gas: float, kind: str = "grant", **kw) -> float:
+    gas = math.floor(float(gas))              # whole numbers only
+    if gas <= 0:
+        raise ValueError("gas must be > 0")
+    return _apply(address, float(gas), kind, **kw)
 
 
 def mark_deposit_dust(address: str, txhash: str, **kw) -> None:
-    """On-chain dust worth < 1 Fuel: zero-point row so the signature enters the
+    """On-chain dust worth < 1 Gas: zero-point row so the signature enters the
     dedup index and is never re-scanned."""
     if not txhash:
         return
@@ -175,33 +175,33 @@ def mark_deposit_dust(address: str, txhash: str, **kw) -> None:
         pass
 
 
-def try_debit(address: str, fuel: float, kind: str = "spend", **kw) -> bool:
+def try_debit(address: str, gas: float, kind: str = "spend", **kw) -> bool:
     """Pre-paid spend (hot path). False when the balance is too low."""
     try:
-        _apply(address, -abs(float(fuel)), kind, **kw)
+        _apply(address, -abs(float(gas)), kind, **kw)
         return True
     except ValueError:
         return False
 
 
-def charge(address: str, fuel: float, kind: str, **kw) -> float:
+def charge(address: str, gas: float, kind: str, **kw) -> float:
     """Post-service charge. A raced-away balance charges down to 0 with the
     shortfall recorded; at zero balance nothing is written (no debt, ever)."""
     address = (address or "").lower()
-    if fuel <= 0:
+    if gas <= 0:
         return balance(address)
     with _LOCK:
         if balance(address) <= 1e-9:
             return 0.0
-        return _apply(address, -abs(float(fuel)), kind, floor_at_zero=True, **kw)
+        return _apply(address, -abs(float(gas)), kind, floor_at_zero=True, **kw)
 
 
 def seen_txhash(txhash: str) -> bool:
-    return bool(txhash) and query_one("SELECT 1 FROM fuel_tx WHERE txhash=?", (txhash,)) is not None
+    return bool(txhash) and query_one("SELECT 1 FROM gas_tx WHERE txhash=?", (txhash,)) is not None
 
 
 def history(address: str, limit: int = 50) -> List[Dict[str, Any]]:
-    rows = query_all("SELECT * FROM fuel_tx WHERE address=? ORDER BY id DESC LIMIT ?",
+    rows = query_all("SELECT * FROM gas_tx WHERE address=? ORDER BY id DESC LIMIT ?",
                      ((address or "").lower(), max(1, min(int(limit), 500))))
     for r in rows:
         r["meta"] = json.loads(r.pop("meta_json") or "{}") if r.get("meta_json") else {}
@@ -210,6 +210,6 @@ def history(address: str, limit: int = 50) -> List[Dict[str, Any]]:
 
 
 def deposited_usd_total(address: str) -> float:
-    row = query_one("SELECT COALESCE(SUM(usd_value),0) AS s FROM fuel_tx WHERE address=? AND kind='deposit'",
+    row = query_one("SELECT COALESCE(SUM(usd_value),0) AS s FROM gas_tx WHERE address=? AND kind='deposit'",
                     ((address or "").lower(),))
     return float(row["s"]) if row else 0.0

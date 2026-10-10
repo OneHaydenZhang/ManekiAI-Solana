@@ -1,4 +1,4 @@
-"""Deposit pipeline — turns finalized Solana transfers into Fuel.
+"""Deposit pipeline — turns finalized Solana transfers into Gas.
 
 Gates every deposit must pass, in order (identical for all three entry points:
 `credit_signature`, `scan_for_user`, `scan_once`):
@@ -74,26 +74,26 @@ def _conversion(token: str) -> Dict[str, Any]:
 
 def credit_deposit(address: str, amt: float, txh: str, price: float, token: str,
                    block: int | None = None, ts: int | None = None) -> float:
-    """Credit one deposit. Returns the Fuel credited (0.0 for a duplicate or dust)."""
-    fuel = pricing.credits_for_token(amt, price)
+    """Credit one deposit. Returns the Gas credited (0.0 for a duplicate or dust)."""
+    gas = pricing.credits_for_token(amt, price)
     usd = amt * price
     meta: Dict[str, Any] = {"mode": "usd"}
     if block is not None:
         meta["slot"] = int(block)
     if ts is not None:
         meta["block_ts"] = int(ts)
-    note = f"deposit {amt:.6f} {token} @ ${price:.2f} -> {fuel:.0f} Fuel"
+    note = f"deposit {amt:.6f} {token} @ ${price:.2f} -> {gas:.0f} Gas"
     try:
-        if fuel < 1:
+        if gas < 1:
             ledger.mark_deposit_dust(address, txh, token=token, token_amount=amt,
-                                     note=f"deposit {amt:.6f} {token} < 1 Fuel (dust)",
+                                     note=f"deposit {amt:.6f} {token} < 1 Gas (dust)",
                                      price_usd=price, usd_value=usd, chain="SOLANA", meta=meta)
             return 0.0
-        ledger.credit(address, fuel, kind="deposit", token=token, token_amount=amt, txhash=txh,
+        ledger.credit(address, gas, kind="deposit", token=token, token_amount=amt, txhash=txh,
                       note=note, price_usd=price, usd_value=usd, chain="SOLANA", meta=meta)
     except ledger.DuplicateDeposit:
         return 0.0
-    return fuel
+    return gas
 
 
 def _receipt_ok(txh: str, cfg: Dict[str, Any]) -> bool:

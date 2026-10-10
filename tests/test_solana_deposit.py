@@ -1,4 +1,4 @@
-"""Solana deposit -> Fuel pipeline. Everything on-chain is a fixed jsonParsed
+"""Solana deposit -> Gas pipeline. Everything on-chain is a fixed jsonParsed
 fixture; no network access is needed.   Run:  python -m pytest tests -q"""
 from __future__ import annotations
 
@@ -247,7 +247,7 @@ def test_credits_are_whole_numbers():
 
 def test_api_flow_login_bind_challenge_and_guardrails():
     c = TestClient(app, raise_server_exceptions=False)
-    assert c.get("/api/fuel").status_code == 401
+    assert c.get("/api/gas").status_code == 401
     tok = c.post("/api/login", json={"address": ME}).json()["token"]
     h = {"Authorization": f"Bearer {tok}"}
     assert c.post("/api/solana/build", headers=h, json={"sender_pubkey": SENDER, "token": "SOL", "amount": 1}).status_code == 409
@@ -272,7 +272,7 @@ def test_api_disabled_without_treasury(monkeypatch):
     assert r.status_code == 503
 
 
-def test_api_burn_consumes_fuel():
+def test_api_burn_consumes_gas():
     ledger.credit(ME, 100, kind="grant")
     c = TestClient(app)
     tok = c.post("/api/login", json={"address": ME}).json()["token"]

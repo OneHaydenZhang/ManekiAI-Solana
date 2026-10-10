@@ -1,6 +1,6 @@
 # Solana deposit lane — technical design
 
-Maneki credits **Fuel** for SOL, USDC and USDT sent to a single treasury address. This document explains the design decisions; the code is in `maneki_solana/`.
+Maneki credits **Gas** for SOL, USDC and USDT sent to a single treasury address. This document explains the design decisions; the code is in `maneki_solana/`.
 
 ## 1. Constraints that shaped the design
 
@@ -89,7 +89,7 @@ A signature that cannot be fetched is simply left for the next scan: nothing is 
 | Blockhash expiry (~60–90 s) | Build immediately before signing; one automatic rebuild |
 | Treasury ATA missing | Created idempotently inside the user's transaction (user pays ≈0.002 SOL); operators pre-create to avoid it |
 | User short on SOL for fees | Best-effort pre-flight (`amount + 0.005 SOL`). **Unreadable ≠ zero:** if the balance lookup fails the request is allowed through |
-| Dust (< 1 Fuel) | Recorded as a zero-point ledger row so the signature enters the dedup index |
+| Dust (< 1 Gas) | Recorded as a zero-point ledger row so the signature enters the dedup index |
 | Address poisoning (1-lamport sends) | Not parked in the operator queue below $0.01 (never credited either) |
 | Exchange withdrawals | Cannot be bound or memo'd → parked; operator attributes after on-chain re-verification |
 | Treasury private key | The service **only receives** — it holds no key |

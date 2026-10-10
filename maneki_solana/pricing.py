@@ -1,13 +1,13 @@
-"""Fuel pricing.
+"""Gas pricing.
 
-Anchor: 1 USD = 1,000 Fuel. A deposit converts as
+Anchor: 1 USD = 1,000 Gas. A deposit converts as
 
-    fuel = floor(amount * price_usd * 1.01 * 1000)
+    gas = floor(amount * price_usd * 1.01 * 1000)
 
 (1% top-up bonus; whole numbers only — remainders are dropped, never rounded
 up). Stablecoins are credited at par. If no trustworthy SOL/USD price can be
 read, the deposit stays PENDING (not credited, not marked seen) and is retried
-on the next scan — Fuel is never minted from a guessed price.
+on the next scan — Gas is never minted from a guessed price.
 
 Burn rates (what a unit of agent work costs, by model tier) are a plain table
 here; the agent runtime that calls `ledger.charge()` is not part of this repo.
@@ -22,7 +22,7 @@ from typing import Dict, Optional
 
 import httpx
 
-FUEL_PER_USD = 1000.0
+GAS_PER_USD = 1000.0
 DEPOSIT_BONUS_MULT = 1.01
 
 STABLE_USD = {"USDC": 1.0, "USDT": 1.0}
@@ -30,7 +30,7 @@ SOL_WINDOW = (5.0, 5000.0)             # sanity window: outside it the feed is "
 _TTL_S = 60.0                          # fresh cache
 _STALE_MAX_S = 3600.0                  # last-good fallback horizon
 
-# Fuel burned per agent decision cycle, by model tier (public price card).
+# Gas burned per agent decision cycle, by model tier (public price card).
 BURN_RATES: Dict[str, float] = {"chat": 8.0, "standard": 18.0, "gpt": 68.0, "claude": 88.0}
 
 _lock = threading.Lock()
@@ -82,13 +82,13 @@ def token_price_usd(symbol: str) -> Optional[float]:
 
 
 def credits_for_token(amount: float, price_usd: float) -> float:
-    return float(math.floor(float(amount) * float(price_usd) * DEPOSIT_BONUS_MULT * FUEL_PER_USD))
+    return float(math.floor(float(amount) * float(price_usd) * DEPOSIT_BONUS_MULT * GAS_PER_USD))
 
 
 def amount_for_credits(credits: float, price_usd: float) -> float:
-    return float(credits) / (float(price_usd) * DEPOSIT_BONUS_MULT * FUEL_PER_USD)
+    return float(credits) / (float(price_usd) * DEPOSIT_BONUS_MULT * GAS_PER_USD)
 
 
 def public_pricing() -> Dict:
-    return {"fuel_per_usd": FUEL_PER_USD, "deposit_bonus_mult": DEPOSIT_BONUS_MULT,
+    return {"gas_per_usd": GAS_PER_USD, "deposit_bonus_mult": DEPOSIT_BONUS_MULT,
             "burn_rates": dict(BURN_RATES), "sol_usd": token_price_usd("SOL") or 0.0}
