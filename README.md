@@ -1,7 +1,7 @@
 # Maneki AI · Solana Deposits & Gas
 
 > **Top up your AI agents with SOL, USDC or USDT.**
-> This repository is the open-source slice of [Maneki AI](https://manekiai.io) built for the **Solana hackathon**: a production Solana deposit lane that turns on-chain payments into **Gas**, the unit our trading agents burn to run.
+> This repository is the open-source slice of [Maneki AI](https://manekiai.io) built for Colosseum's **Crypto World's Fair** hackathon (Solana-first): a production Solana deposit lane that turns on-chain payments into **Gas**, the unit our trading agents burn to run.
 
 | | |
 |---|---|
@@ -9,7 +9,7 @@
 | **Deposit address (mainnet)** | [`3FHqTpYb3g8MWpwGfspTyBd3Twfj2X7pKawBg9T8QQSo`](https://solscan.io/account/3FHqTpYb3g8MWpwGfspTyBd3Twfj2X7pKawBg9T8QQSo) |
 | **Accepted** | native **SOL**, **USDC**, **USDT** (SPL, canonical mints only) |
 | **Judges start here** | [`docs/JUDGE_GUIDE.md`](docs/JUDGE_GUIDE.md) · stack, AI models and AI tools: [`docs/TECHNOLOGIES.md`](docs/TECHNOLOGIES.md) |
-| **Build window** | the Colosseum hackathon runs **2026-09-14 → 2026-10-12**; everything marked *new* below was built **after 2026-09-14** |
+| **Build window** | Colosseum Crypto World's Fair: **2026-09-14 06:00 PT → 2026-10-12 23:59 PT**; everything marked *new* below was built **inside that window** |
 
 ## What Maneki is — and what is new
 

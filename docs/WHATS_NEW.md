@@ -1,6 +1,6 @@
 # What's new for the hackathon
 
-**Reference date:** the Colosseum hackathon runs **2026-09-14 → 2026-10-12**. Work counted as *new* starts on **2026-09-14**; everything before that date is listed separately so judges can tell what existed. Every dated item below is a production release date — the earliest is 2026-09-27, so no claim depends on the days just before the start.
+**Reference date:** Colosseum's Crypto World's Fair runs from **06:00 PT on 2026-09-14 to 23:59 PT on 2026-10-12** (official rules, §5). Work counted as *new* starts at that moment; everything before that date is listed separately so judges can tell what existed. Every dated item below is a production release date — the earliest is 2026-09-27, so no claim depends on the days just before the start.
 
 ## 1. Already existed before 2026-09-14
 

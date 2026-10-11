@@ -42,3 +42,10 @@ Gas is priced by model tier (the public price card in [GAS.md](GAS.md)), so the 
 
 - **Claude Code** (Anthropic's CLI coding agent) was used throughout the hackathon work for implementation, tests, documentation, review and deployment scripting. The Claude model used is recorded in each commit's `Co-Authored-By` trailer — across the project's history during the contest window these are **Claude Fable 5 / 5.1, Claude Opus 5 and Claude Sonnet 5.5**; the commits in this repository carry Sonnet 5.5.
 - **Human direction and verification.** Product decisions, scope, and what may be published were set by the team. Nothing was marked done without running it: unit tests, mainnet `simulateTransaction` and read-only checks against real chains, live quotes, and — where funds were available — real transactions (see the verification status in [WHATS_NEW.md](WHATS_NEW.md)).
+
+## 6. Third-party code and services
+
+- **Open-source dependencies** are listed in `requirements.txt` (FastAPI, Uvicorn, httpx, cryptography, solders) and used under their own licenses; no third-party code is vendored into this repository. This repository's own code is MIT-licensed.
+- **Third-party services** used through public APIs only: Solana JSON-RPC gateways, the Hyperliquid API, LI.FI, Across, the 0G Compute Router and OpenRouter.
+- The contest-window work is original to the team; AI assistance is described in section 5.
+
