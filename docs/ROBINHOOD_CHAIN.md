@@ -39,12 +39,8 @@ Maneki's **Settings → Fund Hyperliquid (cross-chain)** flow lets a user move a
 - the page adds the network to the wallet, handles the USDG approval, and the swap lands as USDC **in the user's own Arbitrum wallet** — funds never pass through the platform;
 - measured 2026-10-11: 0.05 ETH (≈$125) → ≈124.9 USDC; 20 USDG → ≈19.93 USDC (small amounts pay proportionally more in fixed bridge cost, and the page says so);
 - USDG is pinned to the official contract; LI.FI's token list also carries a second "USDG" that is never offered;
-- verified with real funds: two USDG → Arbitrum USDC swaps (15 and 6 USDG) completed on 2026-10-11; the ETH route has not been run with real funds yet;
+- verified with real funds on 2026-10-11: two USDG → Arbitrum USDC swaps (15 and 6 USDG), followed by a real 10 USDC Hyperliquid deposit credited to the user's account; the ETH route has not been run with real funds yet;
 - the "get a little gas (≈3)" shortcut was fixed so that for an ETH source it sizes the amount from the live USD price (~$3) instead of sending three ETH.
-
-## Moving collected deposits to Arbitrum (operator side)
-
-Collected ETH and USDG can be swept to Arbitrum One from the operator console without any key on the server — see [TREASURY_SWEEP.md](TREASURY_SWEEP.md).
 
 ## Honest limits
 

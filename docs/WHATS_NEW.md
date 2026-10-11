@@ -52,16 +52,6 @@
 
 Details: [ROBINHOOD_CHAIN.md](ROBINHOOD_CHAIN.md).
 
-### Treasury sweep — 2026-10-11
-
-| What is new | Why it matters |
-|---|---|
-| **Robinhood Chain → Arbitrum One sweep console** in the operator admin: ETH → ETH and USDG → native USDC through Across (≈0.04–0.07% fee, 1–2 s) | Collected deposits can be consolidated on Arbitrum |
-| **Plan on the server, sign in the operator's wallet** — the platform never holds a private key | A server compromise cannot drain user deposits; same unsigned-transaction pattern as the Solana flow |
-| Allowlisted bridge contracts, exact-request re-checks, fee cap, exact-amount approvals, gas reserve, audit trail | Defence in depth before anything is signed |
-
-Details: [TREASURY_SWEEP.md](TREASURY_SWEEP.md).
-
 ### Gas economy and onboarding (also after 2026-09-14)
 
 | Date | Change |
@@ -84,10 +74,8 @@ Details: [TREASURY_SWEEP.md](TREASURY_SWEEP.md).
 
 **Solana deposit lane — real funds, in production.** Three mainnet SOL deposits from three different user accounts have been bound, signed, confirmed and credited by the production lane (2026-09-30, 2026-10-05, 2026-10-11), each with a ledger row carrying the Solana signature and slot. Before release the lane was also checked with mainnet `simulateTransaction` (SOL + memo; USDT `transferChecked` + ATA creation + memo), a read-only scan of the real treasury, and mint-decimals checks. Not done: a devnet end-to-end deposit (public faucets rate-limited our IPs). Treasury activity is public on [Solscan](https://solscan.io/account/3FHqTpYb3g8MWpwGfspTyBd3Twfj2X7pKawBg9T8QQSo).
 
-**Cross-chain funding from Robinhood Chain — real funds, USDG.** Two real USDG → Arbitrum USDC swaps (15 USDG and 6 USDG, with the exact-amount approval first) were executed through the production page on 2026-10-11 and completed (LI.FI → Across route). Not yet run with real funds: the ETH source route, and a real wallet-popup review on other wallets.
+**Cross-chain funding from Robinhood Chain — real funds, end to end (USDG).** On 2026-10-11 two real USDG → Arbitrum USDC swaps (15 USDG and 6 USDG, exact-amount approval first) completed through the production page (LI.FI → Across route). The first was followed by a real Hyperliquid deposit of 10 USDC through the official bridge, credited to the user's Hyperliquid account (balance 0 → 10), then a perp→spot-dex transfer; the second was followed by another 10 USDC deposit. Not yet run with real funds: the ETH source route.
 
 **Robinhood Chain direct deposit lane (ETH / USDG to the treasury).** Verified against the real chain (log scan and by-hash parsing on real transfers) and in production health checks. **No user deposit through this lane has been credited yet.**
-
-**Treasury sweep.** Planning verified against real quotes (also from the production server) and the browser logic end to end against mocks. **A real-funds sweep has not been run.**
 
 **This repository.** 25 tests pass; the transaction builder was exercised against Solana devnet RPC.

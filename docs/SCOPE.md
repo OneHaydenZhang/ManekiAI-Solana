@@ -8,7 +8,7 @@ This is a **deliberately partial** open-source release of Maneki AI.
 - Gas: pricing, balance, append-only ledger, the charge/debit primitives, public burn-rate card.
 - A runnable demo (API + page) and tests.
 - A high-level description of the technology, AI models and AI tools ([TECHNOLOGIES.md](TECHNOLOGIES.md)).
-- Documentation of the other deposit lanes added during the hackathon window (e.g. [Robinhood Chain](ROBINHOOD_CHAIN.md)); their provider code is not part of this Solana-focused repository. The same applies to the operator sweep console ([TREASURY_SWEEP.md](TREASURY_SWEEP.md)).
+- Documentation of the other deposit lanes added during the hackathon window (e.g. [Robinhood Chain](ROBINHOOD_CHAIN.md)); their provider code is not part of this Solana-focused repository.
 
 ## Not included (proprietary)
 

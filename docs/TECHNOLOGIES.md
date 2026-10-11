@@ -11,7 +11,7 @@ What Maneki is built with, what the hackathon work added, which AI models run in
 | Solana | JSON-RPC over `httpx` (`getSignaturesForAddress`, `getTransaction` jsonParsed, `getTokenAccountsByOwner`, `getSignatureStatuses`), `solders` to build unsigned transactions, Ed25519 verification with `cryptography` to prove wallet control, SPL Token `TransferChecked`, SPL Memo |
 | EVM | JSON-RPC (`eth_getLogs`, receipts) for 0G, HyperEVM, X Layer and Robinhood Chain; `eth_account` for operator-side signing only |
 | Trading venue | Hyperliquid (official Python SDK) |
-| Cross-chain | **LI.FI** (user funding: Robinhood Chain ETH/USDG → USDC on Arbitrum → Hyperliquid's official bridge) and **Across** (operator treasury sweep to Arbitrum One) |
+| Cross-chain | **LI.FI** (user funding: Robinhood Chain ETH/USDG → USDC on Arbitrum → Hyperliquid's official bridge) |
 | Price feeds | Hyperliquid perpetual mids (SOL, ETH) with sanity windows; stablecoins at par |
 
 ## 2. What the hackathon work added to the stack
@@ -19,7 +19,6 @@ What Maneki is built with, what the hackathon work added, which AI models run in
 - **Solana deposit lane** — server-built unsigned transaction, wallet-signed, confirmed by signature; ed25519 bind + memo attribution; finalized-only crediting. See [SOLANA_DEPOSIT.md](SOLANA_DEPOSIT.md).
 - **Robinhood Chain lane** — USDG by log scan, native ETH by transaction hash. See [ROBINHOOD_CHAIN.md](ROBINHOOD_CHAIN.md).
 - **Cross-chain funding from Robinhood Chain** — a new source in the existing LI.FI funding flow.
-- **Treasury sweep** — plan on the server, sign in the operator's wallet; no key on any server. See [TREASURY_SWEEP.md](TREASURY_SWEEP.md).
 
 ## 3. AI models inside the product
 
@@ -46,6 +45,6 @@ Gas is priced by model tier (the public price card in [GAS.md](GAS.md)), so the 
 ## 6. Third-party code and services
 
 - **Open-source dependencies** are listed in `requirements.txt` (FastAPI, Uvicorn, httpx, cryptography, solders) and used under their own licenses; no third-party code is vendored into this repository. This repository's own code is MIT-licensed.
-- **Third-party services** used through public APIs only: Solana JSON-RPC gateways, the Hyperliquid API, LI.FI, Across, the 0G Compute Router and OpenRouter.
+- **Third-party services** used through public APIs only: Solana JSON-RPC gateways, the Hyperliquid API, LI.FI, the 0G Compute Router and OpenRouter.
 - The contest-window work is original to the team; AI assistance is described in section 5.
 
