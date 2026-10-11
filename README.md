@@ -8,17 +8,17 @@
 | **Live product** | <https://manekiai.io> — log in, open the Gas panel, pick **Solana** |
 | **Deposit address (mainnet)** | [`3FHqTpYb3g8MWpwGfspTyBd3Twfj2X7pKawBg9T8QQSo`](https://solscan.io/account/3FHqTpYb3g8MWpwGfspTyBd3Twfj2X7pKawBg9T8QQSo) |
 | **Accepted** | native **SOL**, **USDC**, **USDT** (SPL, canonical mints only) |
-| **Judges start here** | [`docs/JUDGE_GUIDE.md`](docs/JUDGE_GUIDE.md) |
-| **Build window** | everything marked *new* below was built **after 2026-09-12** |
+| **Judges start here** | [`docs/JUDGE_GUIDE.md`](docs/JUDGE_GUIDE.md) · stack, AI models and AI tools: [`docs/TECHNOLOGIES.md`](docs/TECHNOLOGIES.md) |
+| **Build window** | the Colosseum hackathon runs **2026-09-14 → 2026-10-12**; everything marked *new* below was built **after 2026-09-14** |
 
 ## What Maneki is — and what is new
 
-**Maneki already existed before this hackathon.** It is a platform where users launch autonomous AI trading agents on Hyperliquid. Agents run on **Gas**: every completed decision cycle burns Gas, and when the balance hits zero the agent stops. Before 2026-09-12, Gas could be bought with INJ, 0G, HYPE (HyperEVM) and X Layer deposits.
+**Maneki already existed before this hackathon.** It is a platform where users launch autonomous AI trading agents on Hyperliquid. Agents run on **Gas**: every completed decision cycle burns Gas, and when the balance hits zero the agent stops. Before 2026-09-14, Gas could be bought with INJ, 0G, HYPE (HyperEVM) and X Layer deposits.
 
-**New for this hackathon: Solana.** Since 2026-09-12 we added:
+**New for this hackathon: Solana.** Since 2026-09-14 we added:
 
 - **Solana deposits (SOL / USDC / USDT) → Gas** — the fifth deposit chain and the first that is neither EVM nor Cosmos. Shipped to production on 2026-09-30.
-- **Gas as the agent's running gas, paid in Solana** — a Solana payment now directly keeps agents running.
+- **Paying for agent runtime with Solana** — a Solana payment becomes Gas, which directly keeps agents running.
 - A proof-of-wallet **bind** flow, memo-based attribution, a finalized-only scanner, an unattributed-deposit queue, and RPC resilience for public Solana gateways.
 - **Robinhood Chain** (native ETH + USDG) as the sixth deposit chain, shipped 2026-10-10 — see [`docs/ROBINHOOD_CHAIN.md`](docs/ROBINHOOD_CHAIN.md).
 - **Fund Hyperliquid from Robinhood Chain** (2026-10-11): Settings → cross-chain funding now accepts ETH or USDG on Robinhood Chain and swaps it to USDC on Arbitrum in the user's own wallet — see [`docs/ROBINHOOD_CHAIN.md`](docs/ROBINHOOD_CHAIN.md).
@@ -75,7 +75,7 @@ maneki_solana/
   config.py         environment-driven configuration
 web/index.html     wallet-standard top-up demo page (no build step, no dependencies)
 tests/             25 tests over fixed jsonParsed fixtures
-docs/              WHATS_NEW · SOLANA_DEPOSIT · ROBINHOOD_CHAIN · TREASURY_SWEEP · GAS · JUDGE_GUIDE · SCOPE
+docs/              WHATS_NEW · TECHNOLOGIES · SOLANA_DEPOSIT · ROBINHOOD_CHAIN · TREASURY_SWEEP · GAS · JUDGE_GUIDE · SCOPE
 ```
 
 ## Scope

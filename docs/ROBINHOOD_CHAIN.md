@@ -39,6 +39,7 @@ Maneki's **Settings → Fund Hyperliquid (cross-chain)** flow lets a user move a
 - the page adds the network to the wallet, handles the USDG approval, and the swap lands as USDC **in the user's own Arbitrum wallet** — funds never pass through the platform;
 - measured 2026-10-11: 0.05 ETH (≈$125) → ≈124.9 USDC; 20 USDG → ≈19.93 USDC (small amounts pay proportionally more in fixed bridge cost, and the page says so);
 - USDG is pinned to the official contract; LI.FI's token list also carries a second "USDG" that is never offered;
+- verified with real funds: two USDG → Arbitrum USDC swaps (15 and 6 USDG) completed on 2026-10-11; the ETH route has not been run with real funds yet;
 - the "get a little gas (≈3)" shortcut was fixed so that for an ETH source it sizes the amount from the live USD price (~$3) instead of sending three ETH.
 
 ## Moving collected deposits to Arbitrum (operator side)
@@ -49,4 +50,4 @@ Collected ETH and USDG can be swept to Arbitrum One from the operator console wi
 
 1. **Top-level transfers only.** ETH forwarded by a contract (an internal transfer) is not recognised; users send straight from their wallet.
 2. **Sequencer confirmation.** Credit follows the sequencer's receipt (sub-second), the same "latest" semantics as the other EVM lanes. Reversal would require Robinhood's sequencer to re-order after posting to Ethereum; a finality threshold for large deposits is future work.
-3. **Not yet observed with a real user deposit** at the time of writing.
+3. **No user deposit through the direct lane has been credited yet** at the time of writing. (The separate cross-chain funding source above has been used with real USDG: two swaps completed on 2026-10-11.)

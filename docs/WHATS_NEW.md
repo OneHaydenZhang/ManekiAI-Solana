@@ -1,8 +1,8 @@
-# What's new for the Solana hackathon
+# What's new for the hackathon
 
-**Reference date:** work counted as *new* starts on **2026-09-12**. Everything before that date is listed separately so judges can tell what existed.
+**Reference date:** the Colosseum hackathon runs **2026-09-14 → 2026-10-12**. Work counted as *new* starts on **2026-09-14**; everything before that date is listed separately so judges can tell what existed. Every dated item below is a production release date — the earliest is 2026-09-27, so no claim depends on the days just before the start.
 
-## 1. Already existed before 2026-09-12
+## 1. Already existed before 2026-09-14
 
 | Area | State before the hackathon |
 |---|---|
@@ -10,8 +10,10 @@
 | Gas | Per-wallet balance + append-only ledger, USD-anchored pricing (1 USD = 1,000 Gas, +1% top-up bonus), signup bonus |
 | Gas consumption | Agents burn Gas per completed decision cycle, priced by model tier; zero balance stops the agent |
 | Deposit chains | Injective (INJ), 0G, HyperEVM (HYPE / USDT0 / USDC), X Layer — shared registry → scanner → ledger pipeline |
+| Cross-chain funding | Settings → *Fund Hyperliquid (cross-chain)*: swap USDC/USDT (Ethereum, BNB Chain, OP Mainnet) or 0G into USDC on Arbitrum through LI.FI, then Hyperliquid's official bridge — built in July 2026 |
+| Models | Owners pick a model per agent (OpenRouter and the 0G Compute Router); see [TECHNOLOGIES.md](TECHNOLOGIES.md) |
 
-## 2. New since 2026-09-12 — shipped to production
+## 2. New since 2026-09-14 — shipped to production
 
 ### Solana deposit lane — 2026-09-30 (the hackathon feature)
 
@@ -44,7 +46,7 @@
 
 | What is new | Why it matters |
 |---|---|
-| **Robinhood Chain added as a source** in Settings → Fund Hyperliquid (cross-chain): ETH or USDG → USDC on Arbitrum through LI.FI, then into the user's Hyperliquid account | Users holding assets on Robinhood Chain can fund their agents' trading account without leaving the app; funds stay in the user's own wallet at every step |
+| **Robinhood Chain added as a source** to the existing Settings → Fund Hyperliquid (cross-chain) flow: ETH or USDG → USDC on Arbitrum through LI.FI, then into the user's Hyperliquid account (the flow itself pre-dates the hackathon; the new source chain, USDG pinning and the ETH gas-sizing fix are new) | Users holding assets on Robinhood Chain can fund their agents' trading account without leaving the app; funds stay in the user's own wallet at every step |
 | Official-USDG pinning, wallet network auto-add, approval handling, small-amount fee notice | Safety and clarity for a new chain |
 | "Get a little gas (≈3)" now sizes ETH sources by USD price | The old behaviour would have sent 3 ETH |
 
@@ -60,7 +62,7 @@ Details: [ROBINHOOD_CHAIN.md](ROBINHOOD_CHAIN.md).
 
 Details: [TREASURY_SWEEP.md](TREASURY_SWEEP.md).
 
-### Gas economy and onboarding (also after 2026-09-12)
+### Gas economy and onboarding (also after 2026-09-14)
 
 | Date | Change |
 |---|---|
@@ -78,20 +80,14 @@ Details: [TREASURY_SWEEP.md](TREASURY_SWEEP.md).
 | 25 tests | Parsing, bind proof, attribution, idempotency, pending-on-no-price, queue, ledger floor-at-zero, API guardrails, and a real transaction-serialization check |
 | Documentation | This folder |
 
-## 4. Verification status (honest)
+## 4. Verification status (honest, as of 2026-10-11)
 
-Verified on 2026-09-30, before the production release:
+**Solana deposit lane — real funds, in production.** Three mainnet SOL deposits from three different user accounts have been bound, signed, confirmed and credited by the production lane (2026-09-30, 2026-10-05, 2026-10-11), each with a ledger row carrying the Solana signature and slot. Before release the lane was also checked with mainnet `simulateTransaction` (SOL + memo; USDT `transferChecked` + ATA creation + memo), a read-only scan of the real treasury, and mint-decimals checks. Not done: a devnet end-to-end deposit (public faucets rate-limited our IPs). Treasury activity is public on [Solscan](https://solscan.io/account/3FHqTpYb3g8MWpwGfspTyBd3Twfj2X7pKawBg9T8QQSo).
 
-- Mainnet mint decimals re-checked for USDC and USDT (`getAccountInfo`).
-- Scanner run against the real treasury; historical USDT deposits parsed correctly (sender, slot, amount).
-- Server-built transactions (SOL + memo; USDT `transferChecked` + ATA creation + memo) passed mainnet `simulateTransaction` with no error.
-- Front-end flow exercised against a strict DOM harness with the real bundle.
-- This repository: 25 tests pass; the transaction builder was exercised against Solana devnet RPC.
+**Cross-chain funding from Robinhood Chain — real funds, USDG.** Two real USDG → Arbitrum USDC swaps (15 USDG and 6 USDG, with the exact-amount approval first) were executed through the production page on 2026-10-11 and completed (LI.FI → Across route). Not yet run with real funds: the ETH source route, and a real wallet-popup review on other wallets.
 
-**Not yet verified at the time of writing:** a devnet end-to-end deposit (public faucets rate-limited our IPs). Check the treasury on [Solscan](https://solscan.io/account/3FHqTpYb3g8MWpwGfspTyBd3Twfj2X7pKawBg9T8QQSo) for live deposit activity.
+**Robinhood Chain direct deposit lane (ETH / USDG to the treasury).** Verified against the real chain (log scan and by-hash parsing on real transfers) and in production health checks. **No user deposit through this lane has been credited yet.**
 
-Robinhood Chain (2026-10-10): scanned and by-hash parsing verified against the real chain and in production health checks; a real user deposit has not been observed yet.
+**Treasury sweep.** Planning verified against real quotes (also from the production server) and the browser logic end to end against mocks. **A real-funds sweep has not been run.**
 
-Cross-chain funding from Robinhood Chain (2026-10-11): the real front-end code was run in Node against live LI.FI quotes with a mocked wallet (network add, approval, swap transaction, gas sizing); a real wallet popup and real funds have not been exercised yet.
-
-Treasury sweep (2026-10-11): planning verified against real quotes (also from the production server) and the browser logic end to end against mocks; a real-funds sweep has not been run yet.
+**This repository.** 25 tests pass; the transaction builder was exercised against Solana devnet RPC.
